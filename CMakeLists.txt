@@ -26,7 +26,7 @@ else()
 endif()
 
 if (VORBIS_FOUND)
-    target_link_libraries(Lugaru ${VORBIS_LIBRARIES})
+    target_link_libraries(lugaru ${VORBIS_LIBRARIES})
 endif()
 find_package(jsoncpp REQUIRED)
 find_package(glext REQUIRED)
