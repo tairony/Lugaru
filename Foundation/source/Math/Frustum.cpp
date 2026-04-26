@@ -20,7 +20,6 @@ along with Lugaru.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Math/Frustum.hpp"
 
-#include <cmath>
 
 void Frustum::SetFrustum(const float projmatrix[16], const float mvmatrix[16])
 {
@@ -125,9 +124,8 @@ int Frustum::CubeInFrustum(float x, float y, float z, float size) const
 	if (c2 >= 6) {
 		return 2;
 	}
-	else {
-		return 1;
-	}
+
+	return 1;
 }
 
 int Frustum::CubeInFrustum(float x, float y, float z, float size, float height) const
@@ -172,9 +170,7 @@ int Frustum::CubeInFrustum(float x, float y, float z, float size, float height) 
 	if (c2 >= 6) {
 		return 2;
 	}
-	else {
-		return 1;
-	}
+	return 1;
 }
 
 int Frustum::SphereInFrustum(float x, float y, float z, float radius) const
@@ -193,7 +189,6 @@ int Frustum::SphereInFrustum(float x, float y, float z, float radius) const
 	if (c2 >= 6) {
 		return 2;
 	}
-	else {
-		return 1;
-	}
+
+	return 1;
 }

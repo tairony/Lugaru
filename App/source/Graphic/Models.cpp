@@ -19,6 +19,8 @@ along with Lugaru.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "Graphic/Models.hpp"
+
+// Foundation
 #include "Utils/Folders.hpp"
 
 int Model::LineCheck(Vector3* p1, Vector3* p2, Vector3* p, Vector3* move, float* rotate)

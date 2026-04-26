@@ -125,7 +125,7 @@ class Weapons
 public:
     std::vector<Weapon> weapons;
 
-    int Draw();
+    void Draw();
     void DoStuff(bool tutorialActive, bool inDialog, int whichjointstartarray[26], AwardCallback awardNinja, AwardCallback awardBullseye);
 };
 

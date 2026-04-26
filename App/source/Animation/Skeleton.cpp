@@ -19,13 +19,16 @@ along with Lugaru.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "Animation/Skeleton.hpp"
-
 #include "Environment/Terrain.hpp"
+
 #include "Objects/Object.hpp"
 #include "Graphic/Sprite.hpp"
-#include "Animation/Animation.hpp"
-#include "Audio/Sounds.hpp"
 
+// Graphics
+#include "Animation/Animation.hpp"
+// Audio
+#include "Audio/Sounds.hpp"
+// Foundation
 #include "Utils/Folders.hpp"
 
 extern int whichjointendarray[26];

@@ -386,9 +386,13 @@ void Sprite::Draw(const Vector3& viewer, float viewdistance, float fadestart, in
 							end = sprites[i]->position;
 							if (!spritehit) {
 								if (Object::objects[k]->model.LineCheck(&start, &end, &colpoint, &Object::objects[k]->position, &Object::objects[k]->yaw) != -1) {
-									if (detail == 2 || (detail == 1 && abs(rand() % 4) == 0) || (detail == 0 && abs(rand() % 8) == 0)) {
+									if (detail == 2 
+										|| (detail == 1 && abs(rand() % 4) == 0) 
+										|| (detail == 0 && abs(rand() % 8) == 0)) 
+									{
 										Object::objects[k]->model.MakeDecal(blooddecalfast, DoRotation(colpoint - Object::objects[k]->position, 0, -Object::objects[k]->yaw, 0), sprites[i]->size * 1.6, .5, rand() % 360);
 									}
+
 									DeleteSprite(i);
 									spritehit = 1;
 									continue;

@@ -21,10 +21,12 @@ along with Lugaru.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef _MODELS_HPP_
 #define _MODELS_HPP_
 
+// Graphics
 #include "Graphic/Decal.hpp"
 #include "Graphic/Texture.hpp"
 #include "Graphic/gamegl.hpp"
 
+// Foundation
 #include "Math/Vector3.hpp"
 #include "Utils/binio.h"
 #include "Utils/Callbacks.h"
@@ -41,7 +43,7 @@ struct ModelTexture
 {
     long xsz, ysz;
     GLubyte* txt;
-} ;
+};
 
 //
 // Model Structures
@@ -100,6 +102,7 @@ public:
     ~Model();
     void MakeDecal(decal_type atype, Vector3* where, float* size, float* opacity, float* rotation);
     void MakeDecal(decal_type atype, Vector3 where, float size, float opacity, float rotation);
+
     const Vector3& getTriangleVertex(unsigned triangleId, unsigned vertexId) const;
     void drawdecals(Texture shadowtexture, Texture bloodtexture, Texture bloodtexture2, Texture breaktexture, bool toggledecals, float multiplier);
     int SphereCheck(Vector3* p1, float radius, Vector3* p, Vector3* move, float* rotate);
