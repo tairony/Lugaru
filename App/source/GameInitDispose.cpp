@@ -128,7 +128,7 @@ void Game::LoadingScreen()
 	}
 
 	static float loadprogress;
-	static AbsoluteTime frametime = { 0, 0 };
+	static AbsoluteTime frametime = 0;
 	AbsoluteTime currTime = UpTime();
 	double deltaTime = (float)AbsoluteDeltaToDuration(currTime, frametime);
 

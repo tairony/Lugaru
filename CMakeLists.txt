@@ -22,18 +22,12 @@ find_package(PkgConfig REQUIRED)
 # Mova todo o bloco que busca e vincula a biblioteca vorbis para depois da última linha add_subdirectory(Lugaru)
 
 # Exemplo:
-# if (PKG_CONFIG_FOUND)
-#     pkg_check_modules(VORBIS REQUIRED vorbisfile)
-# else()
-#     find_package(vorbis REQUIRED)
-# endif()
 
 # if (VORBIS_FOUND)
-#     target_link_libraries(real_target_name ${VORBIS_LIBRARIES})
 # endif()
 find_package(jsoncpp REQUIRED)
-find_package(glext REQUIRED)
-find_package(glu REQUIRED)
+# find_package(glext REQUIRED)  # headers in mesa-libGL-devel
+# find_package(glu REQUIRED)  # headers in mesa-libGL-devel
 
 # 
 add_subdirectory(Foundation)
@@ -42,3 +36,13 @@ add_subdirectory(Graphics)
 add_subdirectory(Game)
 add_subdirectory(App)
 add_subdirectory(Lugaru)
+
+# === VORBIS LINKING FIX (Fedora 43) ===
+# Executado APÓS os subdiretórios para garantir que o target existe
+if (VORBIS_FOUND AND TARGET Lugaru)
+    target_link_libraries(Lugaru PRIVATE ${VORBIS_LIBRARIES})
+endif()
+# === END FIX ===
+
+# Link explícito para GLU e Vorbis (Fedora/Linux)
+target_link_libraries(Lugaru PRIVATE GLU vorbisfile ${VORBIS_LIBRARIES})

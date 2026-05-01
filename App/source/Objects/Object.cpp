@@ -670,12 +670,12 @@ int Object::checkcollide(Vector3 startpoint, Vector3 endpoint, const Terrain& te
 {
     float minx, minz, maxx, maxz, miny, maxy;
 
-    minx = min(startpoint.x, endpoint.x) - 1;
-    miny = min(startpoint.y, endpoint.y) - 1;
-    minz = min(startpoint.z, endpoint.z) - 1;
-    maxx = max(startpoint.x, endpoint.x) + 1;
-    maxy = max(startpoint.y, endpoint.y) + 1;
-    maxz = max(startpoint.z, endpoint.z) + 1;
+    minx = std::min(startpoint.x, endpoint.x) - 1;
+    miny = std::min(startpoint.y, endpoint.y) - 1;
+    minz = std::min(startpoint.z, endpoint.z) - 1;
+    maxx = std::max(startpoint.x, endpoint.x) + 1;
+    maxy = std::max(startpoint.y, endpoint.y) + 1;
+    maxz = std::max(startpoint.z, endpoint.z) + 1;
 
     for (unsigned int i = 0; i < objects.size(); i++) {
         if (checkcollide(startpoint, endpoint, i, minx, miny, minz, maxx, maxy, maxz, terrain) != -1) {
@@ -690,12 +690,12 @@ int Object::checkcollide(Vector3 startpoint, Vector3 endpoint, int what, const T
 {
     float minx, minz, maxx, maxz, miny, maxy;
 
-    minx = min(startpoint.x, endpoint.x) - 1;
-    miny = min(startpoint.y, endpoint.y) - 1;
-    minz = min(startpoint.z, endpoint.z) - 1;
-    maxx = max(startpoint.x, endpoint.x) + 1;
-    maxy = max(startpoint.y, endpoint.y) + 1;
-    maxz = max(startpoint.z, endpoint.z) + 1;
+    minx = std::min(startpoint.x, endpoint.x) - 1;
+    miny = std::min(startpoint.y, endpoint.y) - 1;
+    minz = std::min(startpoint.z, endpoint.z) - 1;
+    maxx = std::max(startpoint.x, endpoint.x) + 1;
+    maxy = std::max(startpoint.y, endpoint.y) + 1;
+    maxz = std::max(startpoint.z, endpoint.z) + 1;
 
     return checkcollide(startpoint, endpoint, what, minx, miny, minz, maxx, maxy, maxz, terrain);
 }

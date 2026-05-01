@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include "Utils/Screenshot.h"
 
 #include <cstdlib>

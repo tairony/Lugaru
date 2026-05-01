@@ -682,7 +682,7 @@ void Weapon::doStuff(int i, bool tutorialActive, bool inDialog, AwardCallback aw
 									closestdistance = distance;
 								}
 							}
-							if (closestdistance != -1 && isnormal(closestdistance)) {
+							if (closestdistance != -1 && std::isnormal(closestdistance)) {
 								if (DistancePointLine(&closestpoint, &position, &tippoint, &distance, &colpoint)) {
 									closestswordpoint = colpoint;
 									velocity += (closestpoint - closestswordpoint);

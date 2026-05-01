@@ -1,3 +1,5 @@
+#include <sys/stat.h>
+#include <sys/types.h>
 /*
 Copyright (C) 2003, 2010 - Wolfire Games
 Copyright (C) 2010-2017 - Lugaru contributors (see AUTHORS file)
@@ -148,4 +150,13 @@ bool Folders::file_exists(const std::string& filepath)
         fclose(file);
         return true;
     }
+}
+#include <string>
+#include <cstdlib>
+
+// Implementação Linux para Folders::getGenericDirectory
+std::string Folders::getGenericDirectory(const char* key, const std::string& subfolder) {
+    const char* home = getenv("HOME");
+    if (!home) home = "/tmp";
+    return std::string(home) + "/.local/share/Lugaru/" + subfolder;
 }

@@ -3,3 +3,7 @@
 build/
 CMakeUserPresets.json
 *.aps
+# Aider cache/history
+.aider.*
+.aider.tags.cache.v4/
+--commands*

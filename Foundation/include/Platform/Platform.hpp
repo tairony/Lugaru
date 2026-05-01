@@ -24,6 +24,8 @@ along with Lugaru.  If not, see <http://www.gnu.org/licenses/>.
 #include <cfloat>
 #include <cmath>
 #include <cstdio>
+#include <cstdint>
+#include <SDL2/SDL.h>
 
 #if defined(WIN32) && !defined(strcasecmp)
 #define strcasecmp(a, b) stricmp(a, b)
@@ -38,19 +40,14 @@ struct Point
 typedef signed char SInt8;
 typedef unsigned int UInt32;
 
-typedef struct AbsoluteTime
-{
-    unsigned long hi;
-    unsigned long lo;
-} AbsoluteTime;
+/* Linux time functions using SDL (milliseconds, cross-platform) */
+typedef Uint32 AbsoluteTime;
+typedef Uint32 Duration;
 
-/* Returns time since the app started, not system start. */
-AbsoluteTime UpTime();
+inline Uint32 UpTime() { return SDL_GetTicks(); }
+inline Uint32 AbsoluteDeltaToDuration(Uint32& a, Uint32& b) { return (a > b) ? (a - b) : (b - a); }
 
-typedef long Duration;
-
-enum
-{
+enum TimeConstants {
     durationMicrosecond = -1,
     durationMillisecond = 1,
     durationSecond = 1000,
@@ -60,7 +57,5 @@ enum
     durationForever = 0x7FFFFFFF,
     durationImmediate = 0,
 };
-
-Duration AbsoluteDeltaToDuration(AbsoluteTime& a, AbsoluteTime& b);
 
 #endif // _PLATFORM_HPP_

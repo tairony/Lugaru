@@ -37,7 +37,7 @@ along with Lugaru.  If not, see <http://www.gnu.org/licenses/>.
 #include "User/Settings.hpp"
 #include "Utils/Folders.hpp"
 #include "Utils/Input.hpp"
-#include "Utils/dirent.h"
+#include <dirent.h>
 #include "Math/Math.h"
 
 #if PLATFORM_UNIX
@@ -45,7 +45,8 @@ along with Lugaru.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/types.h>
 #include <unistd.h>
 #else
-#include <direct.h>
+#include <unistd.h>
+#include <sys/stat.h>
 #endif
 
 #include <algorithm>
@@ -2029,7 +2030,7 @@ void doAerialAcrobatics()
 			Person::players[k]->collide -= multiplier * 30;
 
 			//clip to terrain
-			Person::players[k]->coords.y = max(Person::players[k]->coords.y, terrain.getHeight(Person::players[k]->coords.x, Person::players[k]->coords.z));
+			Person::players[k]->coords.y = std::max(Person::players[k]->coords.y, terrain.getHeight(Person::players[k]->coords.x, Person::players[k]->coords.z));
 
 			for (unsigned int l = 0; l < terrain.patchobjects[Person::players[k]->whichpatchx][Person::players[k]->whichpatchz].size(); l++) {
 				unsigned int i = terrain.patchobjects[Person::players[k]->whichpatchx][Person::players[k]->whichpatchz][l];
@@ -3582,7 +3583,7 @@ void Game::Tick()
 				if (!Dialog::directing) {
 					pause_sound(whooshsound);
 					viewer = Dialog::currentScene().camera;
-					viewer.y = max((double)viewer.y, terrain.getHeight(viewer.x, viewer.z) + .1);
+					viewer.y = std::max((double)viewer.y, terrain.getHeight(viewer.x, viewer.z) + .1);
 					yaw = Dialog::currentScene().camerayaw;
 					pitch = Dialog::currentScene().camerapitch;
 					if (Dialog::dialoguetime > 0.5) {
@@ -5156,7 +5157,7 @@ void Game::TickOnceAfter()
 				}
 			}
 			cameradist = findDistance(&viewer, &target);
-			viewer.y = max((double)viewer.y, terrain.getHeight(viewer.x, viewer.z) + .6);
+			viewer.y = std::max((double)viewer.y, terrain.getHeight(viewer.x, viewer.z) + .6);
 			if (cameraloc.y < terrain.getHeight(cameraloc.x, cameraloc.z)) {
 				cameraloc.y = terrain.getHeight(cameraloc.x, cameraloc.z);
 			}

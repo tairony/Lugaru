@@ -551,10 +551,10 @@ void Skeleton::FindRotationMuscle(int which, int animation)
 	if (p1.x > p2.x) {
 		muscles[which].rotate1 = 360 - muscles[which].rotate1;
 	}
-	if (!isnormal(muscles[which].rotate1)) {
+	if (!std::isnormal(muscles[which].rotate1)) {
 		muscles[which].rotate1 = 0;
 	}
-	if (!isnormal(muscles[which].rotate2)) {
+	if (!std::isnormal(muscles[which].rotate2)) {
 		muscles[which].rotate2 = 0;
 	}
 
@@ -632,7 +632,7 @@ void Skeleton::FindRotationMuscle(int which, int animation)
 	if (0 > fwd.x) {
 		muscles[which].rotate3 = 360 - muscles[which].rotate3;
 	}
-	if (!isnormal(muscles[which].rotate3)) {
+	if (!std::isnormal(muscles[which].rotate3)) {
 		muscles[which].rotate3 = 0;
 	}
 }

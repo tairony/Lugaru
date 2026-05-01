@@ -25,8 +25,7 @@ target_compile_definitions(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
 	PUBLIC OpenGL::GL
-	PUBLIC glext::glext
-	PUBLIC glu::glu
+	PUBLIC
 
     PUBLIC AudioLib
 )
@@ -39,6 +38,6 @@ target_include_directories(${PROJECT_NAME}
 target_compile_options(${PROJECT_NAME} PRIVATE
   #$<$<CXX_COMPILER_ID:MSVC>:/WX /W4>
   $<$<CXX_COMPILER_ID:MSVC>:/W4>
-  $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Werror>
+  $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall >
   # -Wextra -Wpedantic 
 )

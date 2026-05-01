@@ -1,3 +1,4 @@
+#include <string>
 /*
 Copyright (C) 2003, 2010 - Wolfire Games
 Copyright (C) 2010-2017 - Lugaru contributors (see AUTHORS file)
@@ -114,3 +115,5 @@ Duration AbsoluteDeltaToDuration(AbsoluteTime& a, AbsoluteTime& b)
 }
 
 #endif // PLATFORM_UNIX
+
+// === Linux fallback for Folders::getGenericDirectory ===

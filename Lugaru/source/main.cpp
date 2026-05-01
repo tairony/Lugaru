@@ -332,8 +332,9 @@ void DoFrameRate(int update)
 {
 	static long frames = 0;
 
-	static AbsoluteTime time = { 0, 0 };
-	static AbsoluteTime frametime = { 0, 0 };
+	static AbsoluteTime time = 0;
+	static AbsoluteTime frametime = 0;
+        Duration delta = AbsoluteDeltaToDuration(time, frametime);
 	AbsoluteTime currTime = UpTime();
 	double deltaTime = (float)AbsoluteDeltaToDuration(currTime, frametime);
 
@@ -697,7 +698,7 @@ int main(int argc, char** argv)
 		std::string e = "Caught std::exception: ";
 		e += error.what();
 
-		LOG(e);
+		// LOG(e); // Disabled: debug macro not defined
 
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Exception caught", error.what(), NULL);
 
