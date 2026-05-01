@@ -90,8 +90,8 @@ Objects -> Environment
         -> Foundation
 
 Animation/Skeleton
- - Graphic/Models
- - Object/Object
+        -> Graphic/Models
+        -> Object/Object
 ```
 
 ## License

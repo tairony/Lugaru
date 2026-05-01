@@ -1315,53 +1315,64 @@ void Terrain::MakeDecalLock(decal_type type, Vector3 where, int whichx, int whic
 	}
 }
 
+static void calculateObjectShadows(int index, const Vector3 terrainpoint, float& shadowed, const Vector3& lightloc)
+{
+	if (Object::objects[index]->type == treetrunktype) return;
+
+	Vector3 col;
+	Vector3 testpoint = terrainpoint;
+	Vector3 testpoint2 = terrainpoint + lightloc * 50 * (1 - shadowed);
+
+	if (Object::objects[index]->model.LineCheck(&testpoint, &testpoint2, &col, &Object::objects[index]->position, &Object::objects[index]->yaw) != -1)
+	{
+		shadowed = 1 - (findDistance(&terrainpoint, &col) / 50);
+	}
+}
+
 void Terrain::DoShadows(bool tutorialActive, float texscale, const Light& light, bool skyboxtexture, ProgressCallback callback)
 {
-	Vector3 testpoint, testpoint2, terrainpoint, lightloc, col;
-	lightloc = light.location;
+	Vector3 lightloc = light.location;
 	if (!skyboxtexture) {
 		lightloc.x = 0;
 		lightloc.z = 0;
 	}
+
 	if (skyboxtexture && tutorialActive) {
 		lightloc.x *= .4;
 		lightloc.z *= .4;
 	}
+
 	int patchx, patchz;
-	float shadowed;
 	Normalise(&lightloc);
+
 	//Calculate shadows
 	for (short int i = 0; i < size; i++) {
 		for (short int j = 0; j < size; j++) {
+			Vector3 terrainpoint;
 			terrainpoint.x = (float)i * scale;
 			terrainpoint.z = (float)j * scale;
 			terrainpoint.y = heightmap[i][j] * scale;
 
-			shadowed = 0;
+			float shadowed = 0;
 			patchx = (float)i * subdivision / size;
 			patchz = (float)j * subdivision / size;
 			if (patchobjects[patchx][patchz].size()) {
 				for (unsigned int k = 0; k < patchobjects[patchx][patchz].size(); k++) {
 					unsigned int l = patchobjects[patchx][patchz][k];
-					if (Object::objects[l]->type != treetrunktype) {
-						testpoint = terrainpoint;
-						testpoint2 = terrainpoint + lightloc * 50 * (1 - shadowed);
-						if (Object::objects[l]->model.LineCheck(&testpoint, &testpoint2, &col, &Object::objects[l]->position, &Object::objects[l]->yaw) != -1) {
-							shadowed = 1 - (findDistance(&terrainpoint, &col) / 50);
-						}
-					}
+					calculateObjectShadows(l, terrainpoint, shadowed, lightloc);
 				}
 				callback();
 			}
+
 			float brightness = dotproduct(&lightloc, &normals[i][j]);
 			if (shadowed) {
 				brightness *= 1 - shadowed;
 			}
 
+			// Clamp brightness
 			if (brightness > 1) {
 				brightness = 1;
-			}
-			if (brightness < 0) {
+			} else if (brightness < 0) {
 				brightness = 0;
 			}
 

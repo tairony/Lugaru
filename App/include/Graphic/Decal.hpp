@@ -30,19 +30,19 @@ class Model;
 class Decal
 {
 public:
-    Vector3 position;
-    decal_type type;
-    float opacity;
-    float rotation;
-    float alivetime;
-    float brightness;
+	Vector3 position;
+	decal_type type = decal_type::shadowdecal;
+	float opacity = 0.f;
+	float rotation = 0.f;
+	float alivetime = 0.f;
+	float brightness = 0.f;
 
-    float texcoords[3][2];
-    Vector3 vertex[3];
+	float texcoords[3][2];
+	Vector3 vertex[3];
 
-    Decal();
-    Decal(Vector3 position, decal_type type, float opacity, float rotation, float brightness, int whichx, int whichy, float size, const Terrain& terrain, bool first);
-    Decal(Vector3 position, decal_type type, float opacity, float rotation, float size, const Model& model, int i, int which);
+	Decal();
+	Decal(Vector3 position, decal_type type, float opacity, float rotation, float brightness, int whichx, int whichy, float size, const Terrain& terrain, bool first);
+	Decal(Vector3 position, decal_type type, float opacity, float rotation, float size, const Model& model, int i, int which);
 };
 
 #endif

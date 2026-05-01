@@ -28,6 +28,23 @@ along with Lugaru.  If not, see <http://www.gnu.org/licenses/>.
 #include "Utils/Folders.hpp"
 
 #include "Globals.h"
+#include <gl/GL.h>
+#include <gl/GLU.h>
+#include <string>
+#include <GL/glext.h>
+#include <Graphic/Sprite.hpp>
+#include <Objects/Person.hpp>
+#include <Objects/Weapons.hpp>
+#include <Audio/Sounds.hpp>
+#include <Math/Vector3.hpp>
+#include <Platform/Platform.hpp>
+#include <Utils/ImageIO.hpp>
+#include <User/Account.hpp>
+#include <Animation/Animation.def>
+#include <Animation/Joint.hpp>
+#include <Environment/Skybox.hpp>
+#include <Graphic/Text.hpp>
+#include <Objects/PersonType.hpp>
 
 extern float accountcampaignhighscore[10];
 extern float accountcampaignfasttime[10];
@@ -143,206 +160,208 @@ void Game::LoadingScreen()
 	if (multiplier < .001) {
 		multiplier = .001;
 	}
+
 	if (multiplier > 10) {
 		multiplier = 10;
 	}
-	if (multiplier > .05) {
-		frametime = currTime; // reset for next time interval
 
-		glLoadIdentity();
-		//Clear to black
-		glClearColor(0, 0, 0, 1);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	if (multiplier <= .05) return;
 
-		loadtime += multiplier * 4;
+	frametime = currTime; // reset for next time interval
 
-		loadprogress = loadtime;
-		if (loadprogress > 100) {
-			loadprogress = 100;
-		}
+	glLoadIdentity();
+	//Clear to black
+	glClearColor(0, 0, 0, 1);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//Background
+	loadtime += multiplier * 4;
 
-		glEnable(GL_TEXTURE_2D);
-		loadscreentexture.bind();
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_CULL_FACE);
-		glDisable(GL_LIGHTING);
-		glDepthMask(0);
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-		glOrtho(0, screenwidth, 0, screenheight, -100, 100);
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
-		glTranslatef(screenwidth / 2, screenheight / 2, 0);
-		glScalef((float)screenwidth / 2, (float)screenheight / 2, 1);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glDisable(GL_BLEND);
-		glColor4f(loadprogress / 100, loadprogress / 100, loadprogress / 100, 1);
-		glPushMatrix();
-		glBegin(GL_QUADS);
-		glTexCoord2f(.1 - loadprogress / 100, 0 + loadprogress / 100 + .3);
-		glVertex3f(-1, -1, 0.0f);
-		glTexCoord2f(.1 - loadprogress / 100, 0 + loadprogress / 100 + .3);
-		glVertex3f(1, -1, 0.0f);
-		glTexCoord2f(.1 - loadprogress / 100, 1 + loadprogress / 100 + .3);
-		glVertex3f(1, 1, 0.0f);
-		glTexCoord2f(.1 - loadprogress / 100, 1 + loadprogress / 100 + .3);
-		glVertex3f(-1, 1, 0.0f);
-		glEnd();
-		glPopMatrix();
-		glEnable(GL_BLEND);
-		glPushMatrix();
-		glBegin(GL_QUADS);
-		glTexCoord2f(.4 + loadprogress / 100, 0 + loadprogress / 100);
-		glVertex3f(-1, -1, 0.0f);
-		glTexCoord2f(.4 + loadprogress / 100, 0 + loadprogress / 100);
-		glVertex3f(1, -1, 0.0f);
-		glTexCoord2f(.4 + loadprogress / 100, 1 + loadprogress / 100);
-		glVertex3f(1, 1, 0.0f);
-		glTexCoord2f(.4 + loadprogress / 100, 1 + loadprogress / 100);
-		glVertex3f(-1, 1, 0.0f);
-		glEnd();
-		glPopMatrix();
-		glDisable(GL_TEXTURE_2D);
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
-		glDisable(GL_BLEND);
-		glDepthMask(1);
-
-		glEnable(GL_TEXTURE_2D);
-		loadscreentexture.bind();
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_CULL_FACE);
-		glDisable(GL_LIGHTING);
-		glDepthMask(0);
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-		glOrtho(0, screenwidth, 0, screenheight, -100, 100);
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
-		glTranslatef(screenwidth / 2, screenheight / 2, 0);
-		glScalef((float)screenwidth / 2 * (1.5 - (loadprogress) / 200), (float)screenheight / 2 * (1.5 - (loadprogress) / 200), 1);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-		glEnable(GL_BLEND);
-		glColor4f(loadprogress / 100, loadprogress / 100, loadprogress / 100, 1);
-		glPushMatrix();
-		glBegin(GL_QUADS);
-		glTexCoord2f(0 + .5, 0 + .5);
-		glVertex3f(-1, -1, 0.0f);
-		glTexCoord2f(1 + .5, 0 + .5);
-		glVertex3f(1, -1, 0.0f);
-		glTexCoord2f(1 + .5, 1 + .5);
-		glVertex3f(1, 1, 0.0f);
-		glTexCoord2f(0 + .5, 1 + .5);
-		glVertex3f(-1, 1, 0.0f);
-		glEnd();
-		glPopMatrix();
-		glDisable(GL_TEXTURE_2D);
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
-		glDisable(GL_BLEND);
-		glDepthMask(1);
-
-		glEnable(GL_TEXTURE_2D);
-		loadscreentexture.bind();
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_CULL_FACE);
-		glDisable(GL_LIGHTING);
-		glDepthMask(0);
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-		glOrtho(0, screenwidth, 0, screenheight, -100, 100);
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
-		glTranslatef(screenwidth / 2, screenheight / 2, 0);
-		glScalef((float)screenwidth / 2 * (100 + loadprogress) / 100, (float)screenheight / 2 * (100 + loadprogress) / 100, 1);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-		glEnable(GL_BLEND);
-		glColor4f(loadprogress / 100, loadprogress / 100, loadprogress / 100, .4);
-		glPushMatrix();
-		glBegin(GL_QUADS);
-		glTexCoord2f(0 + .2, 0 + .8);
-		glVertex3f(-1, -1, 0.0f);
-		glTexCoord2f(1 + .2, 0 + .8);
-		glVertex3f(1, -1, 0.0f);
-		glTexCoord2f(1 + .2, 1 + .8);
-		glVertex3f(1, 1, 0.0f);
-		glTexCoord2f(0 + .2, 1 + .8);
-		glVertex3f(-1, 1, 0.0f);
-		glEnd();
-		glPopMatrix();
-		glDisable(GL_TEXTURE_2D);
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
-		glDisable(GL_BLEND);
-		glDepthMask(1);
-
-		//Text
-
-		if (flashamount > 0) {
-			if (flashamount > 1) {
-				flashamount = 1;
-			}
-			if (flashdelay <= 0) {
-				flashamount -= multiplier;
-			}
-			flashdelay--;
-			if (flashamount < 0) {
-				flashamount = 0;
-			}
-			glDisable(GL_DEPTH_TEST);
-			glDisable(GL_CULL_FACE);
-			glDisable(GL_LIGHTING);
-			glDisable(GL_TEXTURE_2D);
-			glDepthMask(0);
-			glMatrixMode(GL_PROJECTION);
-			glPushMatrix();
-			glLoadIdentity();
-			glOrtho(0, screenwidth, 0, screenheight, -100, 100);
-			glMatrixMode(GL_MODELVIEW);
-			glPushMatrix();
-			glLoadIdentity();
-			glScalef(screenwidth, screenheight, 1);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glEnable(GL_BLEND);
-			glColor4f(flashr, flashg, flashb, flashamount);
-			glBegin(GL_QUADS);
-			glVertex3f(0, 0, 0.0f);
-			glVertex3f(256, 0, 0.0f);
-			glVertex3f(256, 256, 0.0f);
-			glVertex3f(0, 256, 0.0f);
-			glEnd();
-			glMatrixMode(GL_PROJECTION);
-			glPopMatrix();
-			glMatrixMode(GL_MODELVIEW);
-			glPopMatrix();
-			glEnable(GL_DEPTH_TEST);
-			glEnable(GL_CULL_FACE);
-			glDisable(GL_BLEND);
-			glDepthMask(1);
-		}
-
-		swap_gl_buffers();
+	loadprogress = loadtime;
+	if (loadprogress > 100) {
+		loadprogress = 100;
 	}
+
+	//Background
+
+	glEnable(GL_TEXTURE_2D);
+	loadscreentexture.bind();
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_LIGHTING);
+	glDepthMask(0);
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glOrtho(0, screenwidth, 0, screenheight, -100, 100);
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+	glTranslatef(screenwidth / 2, screenheight / 2, 0);
+	glScalef((float)screenwidth / 2, (float)screenheight / 2, 1);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_BLEND);
+	glColor4f(loadprogress / 100, loadprogress / 100, loadprogress / 100, 1);
+	glPushMatrix();
+	glBegin(GL_QUADS);
+	glTexCoord2f(.1 - loadprogress / 100, 0 + loadprogress / 100 + .3);
+	glVertex3f(-1, -1, 0.0f);
+	glTexCoord2f(.1 - loadprogress / 100, 0 + loadprogress / 100 + .3);
+	glVertex3f(1, -1, 0.0f);
+	glTexCoord2f(.1 - loadprogress / 100, 1 + loadprogress / 100 + .3);
+	glVertex3f(1, 1, 0.0f);
+	glTexCoord2f(.1 - loadprogress / 100, 1 + loadprogress / 100 + .3);
+	glVertex3f(-1, 1, 0.0f);
+	glEnd();
+	glPopMatrix();
+	glEnable(GL_BLEND);
+	glPushMatrix();
+	glBegin(GL_QUADS);
+	glTexCoord2f(.4 + loadprogress / 100, 0 + loadprogress / 100);
+	glVertex3f(-1, -1, 0.0f);
+	glTexCoord2f(.4 + loadprogress / 100, 0 + loadprogress / 100);
+	glVertex3f(1, -1, 0.0f);
+	glTexCoord2f(.4 + loadprogress / 100, 1 + loadprogress / 100);
+	glVertex3f(1, 1, 0.0f);
+	glTexCoord2f(.4 + loadprogress / 100, 1 + loadprogress / 100);
+	glVertex3f(-1, 1, 0.0f);
+	glEnd();
+	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+	glDisable(GL_BLEND);
+	glDepthMask(1);
+
+	glEnable(GL_TEXTURE_2D);
+	loadscreentexture.bind();
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_LIGHTING);
+	glDepthMask(0);
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glOrtho(0, screenwidth, 0, screenheight, -100, 100);
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+	glTranslatef(screenwidth / 2, screenheight / 2, 0);
+	glScalef((float)screenwidth / 2 * (1.5 - (loadprogress) / 200), (float)screenheight / 2 * (1.5 - (loadprogress) / 200), 1);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	glEnable(GL_BLEND);
+	glColor4f(loadprogress / 100, loadprogress / 100, loadprogress / 100, 1);
+	glPushMatrix();
+	glBegin(GL_QUADS);
+	glTexCoord2f(0 + .5, 0 + .5);
+	glVertex3f(-1, -1, 0.0f);
+	glTexCoord2f(1 + .5, 0 + .5);
+	glVertex3f(1, -1, 0.0f);
+	glTexCoord2f(1 + .5, 1 + .5);
+	glVertex3f(1, 1, 0.0f);
+	glTexCoord2f(0 + .5, 1 + .5);
+	glVertex3f(-1, 1, 0.0f);
+	glEnd();
+	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+	glDisable(GL_BLEND);
+	glDepthMask(1);
+
+	glEnable(GL_TEXTURE_2D);
+	loadscreentexture.bind();
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_LIGHTING);
+	glDepthMask(0);
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glOrtho(0, screenwidth, 0, screenheight, -100, 100);
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+	glTranslatef(screenwidth / 2, screenheight / 2, 0);
+	glScalef((float)screenwidth / 2 * (100 + loadprogress) / 100, (float)screenheight / 2 * (100 + loadprogress) / 100, 1);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	glEnable(GL_BLEND);
+	glColor4f(loadprogress / 100, loadprogress / 100, loadprogress / 100, .4);
+	glPushMatrix();
+	glBegin(GL_QUADS);
+	glTexCoord2f(0 + .2, 0 + .8);
+	glVertex3f(-1, -1, 0.0f);
+	glTexCoord2f(1 + .2, 0 + .8);
+	glVertex3f(1, -1, 0.0f);
+	glTexCoord2f(1 + .2, 1 + .8);
+	glVertex3f(1, 1, 0.0f);
+	glTexCoord2f(0 + .2, 1 + .8);
+	glVertex3f(-1, 1, 0.0f);
+	glEnd();
+	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+	glDisable(GL_BLEND);
+	glDepthMask(1);
+
+	//Text
+
+	if (flashamount > 0) {
+		if (flashamount > 1) {
+			flashamount = 1;
+		}
+		if (flashdelay <= 0) {
+			flashamount -= multiplier;
+		}
+		flashdelay--;
+		if (flashamount < 0) {
+			flashamount = 0;
+		}
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_LIGHTING);
+		glDisable(GL_TEXTURE_2D);
+		glDepthMask(0);
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+		glOrtho(0, screenwidth, 0, screenheight, -100, 100);
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+		glScalef(screenwidth, screenheight, 1);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_BLEND);
+		glColor4f(flashr, flashg, flashb, flashamount);
+		glBegin(GL_QUADS);
+		glVertex3f(0, 0, 0.0f);
+		glVertex3f(256, 0, 0.0f);
+		glVertex3f(256, 256, 0.0f);
+		glVertex3f(0, 256, 0.0f);
+		glEnd();
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
+		glDisable(GL_BLEND);
+		glDepthMask(1);
+	}
+
+	swap_gl_buffers();
 }
 
 void FadeLoadingScreen(float howmuch)

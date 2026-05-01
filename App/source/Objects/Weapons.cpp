@@ -25,6 +25,22 @@ along with Lugaru.  If not, see <http://www.gnu.org/licenses/>.
 #include "Objects/Object.hpp"
 
 #include "Animation/Animation.hpp"
+#include <gl/GL.h>
+#include <cmath>
+#include <cstdlib>
+#include <vector>
+#include <Environment/Terrain.hpp>
+#include <Graphic/Models.hpp>
+#include <Graphic/Sprite.hpp>
+#include <Audio/Sounds.hpp>
+#include <Math/Frustum.hpp>
+#include <Math/Vector3.hpp>
+#include <Utils/Callbacks.h>
+#include <Animation/Animation.def>
+#include <Animation/AnimationDefinitions.h>
+#include <Animation/Joint.hpp>
+#include <Graphic/DecalType.h>
+#include <Graphic/Texture.hpp>
 //#include "Level/Awards.hpp"
 
 extern float multiplier;
@@ -156,6 +172,7 @@ void Weapon::doStuff(int i, bool tutorialActive, bool inDialog, AwardCallback aw
 	if (owner != -1) {
 		oldowner = owner;
 	}
+
 	if (damage >= 2 && type == staff && owner != -1) { // the staff breaks
 		emit_sound_at(staffbreaksound, tippoint);
 		Vector3 tempvel;
@@ -183,6 +200,7 @@ void Weapon::doStuff(int i, bool tutorialActive, bool inDialog, AwardCallback aw
 		position = 0;
 		physics = 0;
 	}
+
 	oldposition = position;
 	oldtippoint = tippoint;
 	if (owner == -1 && (velocity.x || velocity.y || velocity.z) && !physics) { // if the weapon is flying
@@ -331,6 +349,7 @@ void Weapon::doStuff(int i, bool tutorialActive, bool inDialog, AwardCallback aw
 				}
 			}
 		}
+
 		if (position.y < terrain.getHeight(position.x, position.z)) {
 			if (terrain.getOpacity(position.x, position.z) < .2) {
 				velocity = 0;
@@ -1040,7 +1059,7 @@ void Weapons::DoStuff(bool tutorialActive, bool inDialog, int whichjointstartarr
 	//Move
 	// TODO What the actual fuck is this?
 	int i = 0;
-	for (std::vector<Weapon>::iterator weapon =  weapons.begin(); weapon !=  weapons.end(); ++weapon) {
+	for (std::vector<Weapon>::iterator weapon = weapons.begin(); weapon != weapons.end(); ++weapon) {
 		weapon->doStuff(i++, tutorialActive, inDialog, awardNinja, awardBullseye, whichjointstartarray);
 	}
 }
@@ -1050,128 +1069,59 @@ void Weapon::draw()
 	static Vector3 terrainlight;
 	static GLfloat M[16];
 
-	if ((frustum.SphereInFrustum(position.x, position.y, position.z, 1) &&
-		distsq(&viewer, &position) < viewdistance * viewdistance)) {
-		bool draw = false;
-		if (owner == -1) {
-			draw = true;
-			if (velocity.x && !physics) {
-				drawhowmany = 10;
-			}
-			else {
-				drawhowmany = 1;
-			}
+	bool weaponBoundingSphereInFrustum = frustum.SphereInFrustum(position.x, position.y, position.z, 1);
+	if (!weaponBoundingSphereInFrustum)
+		return;
+
+	bool weaponWithinViewingDistance = distsq(&viewer, &position) < viewdistance * viewdistance;
+	if (!weaponWithinViewingDistance)
+		return;
+
+	// Weapon is within viewing range and view frustum
+	bool draw = false;
+
+	if (owner == -1) {
+		draw = true;
+		if (velocity.x && !physics) {
+			drawhowmany = 10;
 		}
 		else {
-			if (Person::players[owner]->occluded < 25) {
-				if ((frustum.SphereInFrustum(Person::players[owner]->coords.x, Person::players[owner]->coords.y + Person::players[owner]->scale * 3, Person::players[owner]->coords.z, Person::players[owner]->scale * 8) && distsq(&viewer, &Person::players[owner]->coords) < viewdistance * viewdistance) || Person::players[owner]->skeleton.free == 3) {
-					draw = true;
-				}
-			}
-			if (
-				(Person::players[owner]->animTarget == knifeslashstartanim ||
-					Person::players[owner]->animTarget == swordsneakattackanim ||
-					(Person::players[owner]->animCurrent == staffhitanim && Person::players[owner]->frameCurrent > 1) ||
-					(Person::players[owner]->animCurrent == staffhitreversedanim && Person::players[owner]->frameCurrent > 1) ||
-					(Person::players[owner]->animCurrent == staffspinhitanim && Person::players[owner]->frameCurrent > 1) ||
-					(Person::players[owner]->animCurrent == staffspinhitreversedanim && Person::players[owner]->frameCurrent > 1) ||
-					(Person::players[owner]->animCurrent == staffgroundsmashanim && Person::players[owner]->frameCurrent > 1) ||
-					(Person::players[owner]->animTarget == swordslashanim && Person::players[owner]->frameTarget < 7) ||
-					Person::players[owner]->animTarget == crouchstabanim ||
-					Person::players[owner]->animTarget == swordslashreversalanim ||
-					Person::players[owner]->animTarget == swordslashreversedanim ||
-					Person::players[owner]->animTarget == knifefollowanim ||
-					Person::players[owner]->animTarget == swordgroundstabanim ||
-					Person::players[owner]->animTarget == knifethrowanim) &&
-				Person::players[owner]->animTarget == lastdrawnanim &&
-				!Person::players[owner]->skeleton.free) {
-				drawhowmany = 10;
-			}
-			else {
-				drawhowmany = 1;
-			}
-			if (Person::players[owner]->animTarget == swordgroundstabanim) {
-				lastdrawnrotation1 = rotation1;
-				lastdrawnrotation2 = rotation2;
-				lastdrawnrotation3 = rotation3;
-				lastdrawnbigrotation = bigrotation;
-				lastdrawnbigtilt = bigtilt;
-				lastdrawnbigtilt2 = bigtilt2;
-				lastdrawnsmallrotation = smallrotation;
-				lastdrawnsmallrotation2 = smallrotation2;
+			drawhowmany = 1;
+		}
+	}
+	else {
+		if (Person::players[owner]->occluded < 25) {
+			if ((frustum.SphereInFrustum(Person::players[owner]->coords.x, Person::players[owner]->coords.y + Person::players[owner]->scale * 3, Person::players[owner]->coords.z, Person::players[owner]->scale * 8)
+				&& distsq(&viewer, &Person::players[owner]->coords) < viewdistance * viewdistance)
+				|| Person::players[owner]->skeleton.free == 3) {
+				draw = true;
 			}
 		}
-		if (draw) {
-			terrainlight = terrain.getLighting(position.x, position.z);
-			if (drawhowmany > 0) {
-				glAlphaFunc(GL_GREATER, 0.01);
-			}
-			for (int j = drawhowmany; j > 0; j--) {
-				glMatrixMode(GL_MODELVIEW);
-				glPushMatrix();
-				glColor4f(terrainlight.x, terrainlight.y, terrainlight.z, j / drawhowmany);
-				if (owner == -1) {
-					glTranslatef(position.x * (((float)(j)) / drawhowmany) + lastdrawnposition.x * (1 - ((float)(j)) / drawhowmany), position.y * (((float)(j)) / drawhowmany) + lastdrawnposition.y * (1 - ((float)(j)) / drawhowmany), position.z * (((float)(j)) / drawhowmany) + lastdrawnposition.z * (1 - ((float)(j)) / drawhowmany));
-				}
-				else {
-					glTranslatef(position.x * (((float)(j)) / drawhowmany) + lastdrawnposition.x * (1 - ((float)(j)) / drawhowmany), position.y * (((float)(j)) / drawhowmany) - .02 + lastdrawnposition.y * (1 - ((float)(j)) / drawhowmany), position.z * (((float)(j)) / drawhowmany) + lastdrawnposition.z * (1 - ((float)(j)) / drawhowmany));
-				}
-				glRotatef(bigrotation * (((float)(j)) / drawhowmany) + lastdrawnbigrotation * (1 - ((float)(j)) / drawhowmany), 0, 1, 0);
-				glRotatef(bigtilt2 * (((float)(j)) / drawhowmany) + lastdrawnbigtilt2 * (1 - ((float)(j)) / drawhowmany), 1, 0, 0);
-				glRotatef(bigtilt * (((float)(j)) / drawhowmany) + lastdrawnbigtilt * (1 - ((float)(j)) / drawhowmany), 0, 0, 1);
-				glRotatef(-rotation1 * (((float)(j)) / drawhowmany) - lastdrawnrotation1 * (1 - ((float)(j)) / drawhowmany) + 90, 0, 1, 0);
-				glRotatef(-rotation2 * (((float)(j)) / drawhowmany) - lastdrawnrotation2 * (1 - ((float)(j)) / drawhowmany) + 90, 0, 0, 1);
-				glRotatef(-rotation3 * (((float)(j)) / drawhowmany) - lastdrawnrotation3 * (1 - ((float)(j)) / drawhowmany), 0, 1, 0);
-				glRotatef(smallrotation * (((float)(j)) / drawhowmany) + lastdrawnsmallrotation * (1 - ((float)(j)) / drawhowmany), 1, 0, 0);
-				glRotatef(smallrotation2 * (((float)(j)) / drawhowmany) + lastdrawnsmallrotation2 * (1 - ((float)(j)) / drawhowmany), 0, 1, 0);
 
-				if (owner != -1) {
-					if (Person::players[owner]->animTarget == staffhitanim || Person::players[owner]->animCurrent == staffhitanim || Person::players[owner]->animTarget == staffhitreversedanim || Person::players[owner]->animCurrent == staffhitreversedanim) {
-						glTranslatef(0, 0, -.3);
-					}
-					if (Person::players[owner]->animTarget == staffgroundsmashanim || Person::players[owner]->animCurrent == staffgroundsmashanim || Person::players[owner]->animTarget == staffspinhitreversedanim || Person::players[owner]->animCurrent == staffspinhitreversedanim || Person::players[owner]->animTarget == staffspinhitanim || Person::players[owner]->animCurrent == staffspinhitanim) {
-						glTranslatef(0, 0, -.1);
-					}
-				}
+		if (
+			(Person::players[owner]->animTarget == knifeslashstartanim ||
+				Person::players[owner]->animTarget == swordsneakattackanim ||
+				(Person::players[owner]->animCurrent == staffhitanim && Person::players[owner]->frameCurrent > 1) ||
+				(Person::players[owner]->animCurrent == staffhitreversedanim && Person::players[owner]->frameCurrent > 1) ||
+				(Person::players[owner]->animCurrent == staffspinhitanim && Person::players[owner]->frameCurrent > 1) ||
+				(Person::players[owner]->animCurrent == staffspinhitreversedanim && Person::players[owner]->frameCurrent > 1) ||
+				(Person::players[owner]->animCurrent == staffgroundsmashanim && Person::players[owner]->frameCurrent > 1) ||
+				(Person::players[owner]->animTarget == swordslashanim && Person::players[owner]->frameTarget < 7) ||
+				Person::players[owner]->animTarget == crouchstabanim ||
+				Person::players[owner]->animTarget == swordslashreversalanim ||
+				Person::players[owner]->animTarget == swordslashreversedanim ||
+				Person::players[owner]->animTarget == knifefollowanim ||
+				Person::players[owner]->animTarget == swordgroundstabanim ||
+				Person::players[owner]->animTarget == knifethrowanim) &&
+			Person::players[owner]->animTarget == lastdrawnanim &&
+			!Person::players[owner]->skeleton.free) {
+			drawhowmany = 10;
+		}
+		else {
+			drawhowmany = 1;
+		}
 
-				glEnable(GL_LIGHTING);
-				switch (type) {
-				case knife:
-					if (!bloody || !bloodtoggle) {
-						throwingknifemodel.drawdifftex(knifetextureptr);
-					}
-					if (bloodtoggle) {
-						if (bloody == 1) {
-							throwingknifemodel.drawdifftex(lightbloodknifetextureptr);
-						}
-						if (bloody == 2) {
-							throwingknifemodel.drawdifftex(bloodknifetextureptr);
-						}
-					}
-					break;
-				case sword:
-					if (!bloody || !bloodtoggle) {
-						swordmodel.drawdifftex(swordtextureptr);
-					}
-					if (bloodtoggle) {
-						if (bloody == 1) {
-							swordmodel.drawdifftex(lightbloodswordtextureptr);
-						}
-						if (bloody == 2) {
-							swordmodel.drawdifftex(bloodswordtextureptr);
-						}
-					}
-					break;
-				case staff:
-					staffmodel.drawdifftex(stafftextureptr);
-					break;
-				}
-
-				glPopMatrix();
-			}
-
-			lastdrawnposition = position;
-			lastdrawntippoint = tippoint;
+		if (Person::players[owner]->animTarget == swordgroundstabanim) {
 			lastdrawnrotation1 = rotation1;
 			lastdrawnrotation2 = rotation2;
 			lastdrawnrotation3 = rotation3;
@@ -1180,30 +1130,112 @@ void Weapon::draw()
 			lastdrawnbigtilt2 = bigtilt2;
 			lastdrawnsmallrotation = smallrotation;
 			lastdrawnsmallrotation2 = smallrotation2;
-			if (owner != -1) {
-				lastdrawnanim = Person::players[owner]->animCurrent;
-			}
 		}
-		if (owner != -1) {
+	}
+
+	if (draw) {
+		terrainlight = terrain.getLighting(position.x, position.z);
+		if (drawhowmany > 0) {
+			glAlphaFunc(GL_GREATER, 0.01);
+		}
+		for (int j = drawhowmany; j > 0; j--) {
 			glMatrixMode(GL_MODELVIEW);
 			glPushMatrix();
-			glLoadIdentity();
-			glTranslatef(position.x, position.y - .02, position.z);
-			glRotatef(bigrotation, 0, 1, 0);
-			glRotatef(bigtilt2, 1, 0, 0);
-			glRotatef(bigtilt, 0, 0, 1);
-			glRotatef(-rotation1 + 90, 0, 1, 0);
-			glRotatef(-rotation2 + 90, 0, 0, 1);
-			glRotatef(-rotation3, 0, 1, 0);
-			glRotatef(smallrotation, 1, 0, 0);
-			glRotatef(smallrotation2, 0, 1, 0);
-			glTranslatef(0, 0, length);
-			glGetFloatv(GL_MODELVIEW_MATRIX, M);
-			tippoint.x = M[12];
-			tippoint.y = M[13];
-			tippoint.z = M[14];
+			glColor4f(terrainlight.x, terrainlight.y, terrainlight.z, j / drawhowmany);
+			if (owner == -1) {
+				glTranslatef(position.x * (((float)(j)) / drawhowmany) + lastdrawnposition.x * (1 - ((float)(j)) / drawhowmany), position.y * (((float)(j)) / drawhowmany) + lastdrawnposition.y * (1 - ((float)(j)) / drawhowmany), position.z * (((float)(j)) / drawhowmany) + lastdrawnposition.z * (1 - ((float)(j)) / drawhowmany));
+			}
+			else {
+				glTranslatef(position.x * (((float)(j)) / drawhowmany) + lastdrawnposition.x * (1 - ((float)(j)) / drawhowmany), position.y * (((float)(j)) / drawhowmany) - .02 + lastdrawnposition.y * (1 - ((float)(j)) / drawhowmany), position.z * (((float)(j)) / drawhowmany) + lastdrawnposition.z * (1 - ((float)(j)) / drawhowmany));
+			}
+			glRotatef(bigrotation * (((float)(j)) / drawhowmany) + lastdrawnbigrotation * (1 - ((float)(j)) / drawhowmany), 0, 1, 0);
+			glRotatef(bigtilt2 * (((float)(j)) / drawhowmany) + lastdrawnbigtilt2 * (1 - ((float)(j)) / drawhowmany), 1, 0, 0);
+			glRotatef(bigtilt * (((float)(j)) / drawhowmany) + lastdrawnbigtilt * (1 - ((float)(j)) / drawhowmany), 0, 0, 1);
+			glRotatef(-rotation1 * (((float)(j)) / drawhowmany) - lastdrawnrotation1 * (1 - ((float)(j)) / drawhowmany) + 90, 0, 1, 0);
+			glRotatef(-rotation2 * (((float)(j)) / drawhowmany) - lastdrawnrotation2 * (1 - ((float)(j)) / drawhowmany) + 90, 0, 0, 1);
+			glRotatef(-rotation3 * (((float)(j)) / drawhowmany) - lastdrawnrotation3 * (1 - ((float)(j)) / drawhowmany), 0, 1, 0);
+			glRotatef(smallrotation * (((float)(j)) / drawhowmany) + lastdrawnsmallrotation * (1 - ((float)(j)) / drawhowmany), 1, 0, 0);
+			glRotatef(smallrotation2 * (((float)(j)) / drawhowmany) + lastdrawnsmallrotation2 * (1 - ((float)(j)) / drawhowmany), 0, 1, 0);
+
+			if (owner != -1) {
+				if (Person::players[owner]->animTarget == staffhitanim || Person::players[owner]->animCurrent == staffhitanim || Person::players[owner]->animTarget == staffhitreversedanim || Person::players[owner]->animCurrent == staffhitreversedanim) {
+					glTranslatef(0, 0, -.3);
+				}
+				if (Person::players[owner]->animTarget == staffgroundsmashanim || Person::players[owner]->animCurrent == staffgroundsmashanim || Person::players[owner]->animTarget == staffspinhitreversedanim || Person::players[owner]->animCurrent == staffspinhitreversedanim || Person::players[owner]->animTarget == staffspinhitanim || Person::players[owner]->animCurrent == staffspinhitanim) {
+					glTranslatef(0, 0, -.1);
+				}
+			}
+
+			glEnable(GL_LIGHTING);
+			switch (type) {
+			case knife:
+				if (!bloody || !bloodtoggle) {
+					throwingknifemodel.drawdifftex(knifetextureptr);
+				}
+				if (bloodtoggle) {
+					if (bloody == 1) {
+						throwingknifemodel.drawdifftex(lightbloodknifetextureptr);
+					}
+					if (bloody == 2) {
+						throwingknifemodel.drawdifftex(bloodknifetextureptr);
+					}
+				}
+				break;
+			case sword:
+				if (!bloody || !bloodtoggle) {
+					swordmodel.drawdifftex(swordtextureptr);
+				}
+				if (bloodtoggle) {
+					if (bloody == 1) {
+						swordmodel.drawdifftex(lightbloodswordtextureptr);
+					}
+					if (bloody == 2) {
+						swordmodel.drawdifftex(bloodswordtextureptr);
+					}
+				}
+				break;
+			case staff:
+				staffmodel.drawdifftex(stafftextureptr);
+				break;
+			}
+
 			glPopMatrix();
 		}
+
+		lastdrawnposition = position;
+		lastdrawntippoint = tippoint;
+		lastdrawnrotation1 = rotation1;
+		lastdrawnrotation2 = rotation2;
+		lastdrawnrotation3 = rotation3;
+		lastdrawnbigrotation = bigrotation;
+		lastdrawnbigtilt = bigtilt;
+		lastdrawnbigtilt2 = bigtilt2;
+		lastdrawnsmallrotation = smallrotation;
+		lastdrawnsmallrotation2 = smallrotation2;
+		if (owner != -1) {
+			lastdrawnanim = Person::players[owner]->animCurrent;
+		}
+	}
+
+	if (owner != -1) {
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+		glTranslatef(position.x, position.y - .02, position.z);
+		glRotatef(bigrotation, 0, 1, 0);
+		glRotatef(bigtilt2, 1, 0, 0);
+		glRotatef(bigtilt, 0, 0, 1);
+		glRotatef(-rotation1 + 90, 0, 1, 0);
+		glRotatef(-rotation2 + 90, 0, 0, 1);
+		glRotatef(-rotation3, 0, 1, 0);
+		glRotatef(smallrotation, 1, 0, 0);
+		glRotatef(smallrotation2, 0, 1, 0);
+		glTranslatef(0, 0, length);
+		glGetFloatv(GL_MODELVIEW_MATRIX, M);
+		tippoint.x = M[12];
+		tippoint.y = M[13];
+		tippoint.z = M[14];
+		glPopMatrix();
 	}
 }
 
@@ -1216,6 +1248,7 @@ void Weapon::drop(Vector3 v, Vector3 tv, bool sethitsomething)
 	if (sethitsomething) {
 		hitsomething = 0;
 	}
+
 	freetime = 0;
 	firstfree = 1;
 	physics = 1;
@@ -1228,7 +1261,7 @@ void Weapon::thrown(Vector3 v, bool sethitsomething)
 	physics = 0;
 }
 
-int Weapons::Draw()
+void Weapons::Draw()
 {
 	glAlphaFunc(GL_GREATER, 0.9);
 	glEnable(GL_TEXTURE_2D);
@@ -1237,8 +1270,7 @@ int Weapons::Draw()
 	glCullFace(GL_FRONT);
 	glDepthMask(1);
 
-	for (std::vector<Weapon>::iterator weapon =  weapons.begin(); weapon !=  weapons.end(); ++weapon) {
+	for (std::vector<Weapon>::iterator weapon = weapons.begin(); weapon != weapons.end(); ++weapon) {
 		weapon->draw();
 	}
-	return 0;
 }

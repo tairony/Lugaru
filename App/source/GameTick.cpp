@@ -284,6 +284,7 @@ void Game::cmd_dispatch(const std::string cmd)
 
 /********************> Tick() <*****/
 extern bool save_screenshot(const char* fname);
+
 void Screenshot(void)
 {
 	char filename[1024];
